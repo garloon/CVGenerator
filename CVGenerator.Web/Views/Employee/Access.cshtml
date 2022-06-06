@@ -1,0 +1,215 @@
+﻿@using System.Reflection
+@using System.ComponentModel.DataAnnotations;
+
+@{ Layout = "_Layout";
+
+    // Заголовок таблицы
+    var tableTitle = string.Empty;
+
+    if (ViewData.ContainsKey("TableTitle"))
+    {
+        tableTitle = (ViewData["TableTitle"] as string) ?? string.Empty;
+    }
+
+    // Название контроллера, предназначенного для обработки объектов
+    string controllerName = string.Empty;
+
+    if (ViewData.ContainsKey("ControllerName"))
+    {
+        controllerName = (ViewData["ControllerName"] as string) ?? string.Empty;
+    }
+
+    if (!string.IsNullOrEmpty(controllerName) && controllerName.IndexOf("/") != 0)
+    {
+        controllerName = "/" + controllerName;
+    }
+
+    // Строка содержащая Url списка (адрес контроллера и параметры фильтрации)
+    var listObjUrl = controllerName + "?";
+
+    if (ViewData.ContainsKey("QueryFilterString"))
+    {
+        var filterString = ViewData["QueryFilterString"] as string;
+        listObjUrl += !string.IsNullOrEmpty(filterString) ? filterString + "&" : string.Empty;
+    }
+
+    // Объект с параметрами фильтрации
+    EmployeeQueryFilter queryFilter = null;
+    if (ViewData.ContainsKey("QueryFilter"))
+        queryFilter = ViewData["QueryFilter"] as EmployeeQueryFilter;
+
+    // Список объектов
+    IEnumerable<EmployeeAccessModel> listObj = ViewData.Model as IEnumerable<EmployeeAccessModel>;
+
+    // Список заголовков и форматов представления полей объектов
+    Dictionary<PropertyInfo, string> fieldTitles = null;
+    Dictionary<PropertyInfo, string> fieldFormats = null;
+
+    if (listObj != null)
+    {
+        var properties = listObj.GetType().GetGenericArguments().SingleOrDefault().GetProperties();
+
+        fieldTitles = new Dictionary<PropertyInfo, string>();
+        fieldFormats = new Dictionary<PropertyInfo, string>();
+
+        foreach (var prop in properties)
+        {
+            var displayAttr = prop.GetCustomAttribute(typeof(DisplayAttribute)) as DisplayAttribute;
+            if (displayAttr != null)
+            {
+                fieldTitles.Add(prop, displayAttr.Name);
+            }
+
+            var formatAttr = prop.GetCustomAttribute(typeof(DisplayFormatAttribute)) as DisplayFormatAttribute;
+            if (formatAttr != null)
+            {
+                fieldFormats.Add(prop, formatAttr.DataFormatString);
+            }
+        }
+
+        properties.FirstOrDefault(prop => prop.Name == "Id");
+    }
+
+    // Количество ссылок на страницы
+    const int pageLinkCount = 4;
+
+    // Общее количество стрниц
+    int PageCount;
+    int.TryParse(ViewData["PageCount"]?.ToString() ?? "-1", out PageCount);
+
+    // Номер текущей стриницы
+    int PageNum;
+    int.TryParse(ViewData["PageNum"]?.ToString() ?? "-1", out PageNum);
+
+    ViewData["Title"] = tableTitle; }
+
+@if (fieldTitles != null && fieldTitles.Count > 0)
+{
+<script src="~/js/QueryFilter.js"></script>
+                <script src="~/js/Views/Employee/Access.js"></script>
+
+                                <script>
+        saveMethodUrl = '@($"{controllerName}/SaveChanges")';
+        controllerUrl = '@controllerName';
+        filter.name = '@(new Microsoft.AspNetCore.Html.HtmlString(queryFilter?.Name ?? string.Empty))';
+                                </script>
+
+                                                <div class="container">
+                                                    <div class="row">
+                                                        <h2>@tableTitle</h2>
+                                                    </div>
+                                                    <div class="row">
+                                                        <div class="col-8 d-flex align-items-center">
+                                                            <div id="loadingSpiner" style="display:none">
+                                                                <div class="spinner-grow spinner-grow-sm" role="status">
+                                                                    <span class="sr-only">Loading...</span>
+                                                                </div>
+                                                                <div class="spinner-grow spinner-grow-sm" role="status">
+                                                                    <span class="sr-only">Loading...</span>
+                                                                </div>
+                                                                <div class="spinner-grow spinner-grow-sm" role="status">
+                                                                    <span class="sr-only">Loading...</span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="col-4">
+                                                            <input id="tbEmployeeNameFilter" class="form-control" placeholder="Поиск..." />
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                                <br />
+
+                                                                                <div id="content">
+                                                                                    <table class="table">
+                                                                                        <thead>
+                                                                                            <tr>
+                                                                                                @foreach (var field in fieldTitles)
+                                                                                                {
+                                                                                <th scope="col"><label>@field.Value</label></th>
+}
+                                                                                                <th scope="col" style="width:2em"></th>
+                                                                                            </tr>
+                                                                                        </thead>
+                                                                                        <tbody>
+
+                                                                                            @foreach (var obj in listObj)
+                                                                                            {
+                                                                            <tr id="@($"objId{obj.EmployeeId}")">
+                                                                                <td>
+                                                                                    @(obj.EmployeeName ?? string.Empty)
+                                                                                </td>
+                                                                                <td>
+                                                                                    <input type="checkbox" class="form-check-input objIsAdministrator" onchange="addChangedAccess(this.dataset.id)" data-id="@obj.EmployeeId" @(obj.IsAdministrator ? "checked" : "") />
+                                                                                </td>
+                                                                                <td>
+                                                                                    <input type="checkbox" class="form-check-input objIsSupervisor" onchange="addChangedAccess(this.dataset.id)" data-id="@obj.EmployeeId" @(obj.IsSupervisor ? "checked" : "") />
+                                                                                </td>
+                                                                                <td>
+                                                                                    <input type="checkbox" class="form-check-input objIsAccount" onchange="addChangedAccess(this.dataset.id)" data-id="@obj.EmployeeId" @(obj.IsAccount ? "checked" : "") />
+                                                                                </td>
+
+                                                                                <td>
+                                                                                    <span class="objectMark" data-id="@obj.EmployeeId" hidden>*</span>
+                                                                                </td>
+
+                                                                            </tr>
+}
+                                                                                        </tbody>
+                                                                                    </table>
+
+
+                                                                                    <div class="row">
+
+                                                                                        <div id="paginator" class="col-6">
+
+                                                                                            @if (PageCount > 0)
+                                                                                            {
+                                                                            <ul class="pagination">
+                                                                                @if (PageNum > 1)
+                                                                                {
+                                                            <li class="page-item">
+                                                                <a class="page-link" href="@($"{listObjUrl}page={PageNum - 1}")" onclick="checkUnsavedChanges(event)">
+                                                                    Previous
+                                                                </a>
+                                                            </li>
+ }
+                                                        else
+                                                        {
+                                    <li class="page-item disabled"><a class="page-link" href="#">Previous</a></li>
+}
+
+                                                                                @for (int num = Math.Max(PageNum - (pageLinkCount / 2), 1); num <= Math.Min(PageNum + pageLinkCount / 2, PageCount); num++)
+                                                                                {
+                                                                                    if (num != PageNum)
+                                                                                    {
+                                                            <li class="page-item"><a class="page-link" href="@($"{listObjUrl}page={num}")" onclick="checkUnsavedChanges(event)">@num</a></li>
+ }
+                                                        else
+                                                        {
+                                <li class="page-item active disabled"><a class="page-link" href="#">@(PageNum)</a></li>
+}
+                        }
+
+                                                                                @if (PageNum < PageCount)
+                                                                                {
+                                                            <li class="page-item"><a class="page-link" href="@($"{listObjUrl}page={PageNum + 1}")" onclick="checkUnsavedChanges(event)">Next</a></li>
+ }
+                                                        else
+                                                        {
+                                    <li class="page-item disabled"><a class="page-link" href="#">Next</a></li>
+}
+                                                                            </ul>}
+                                                                                        </div>
+
+                                                                                        <div class="col-6 text-right">
+                                                                                            <button id="btnSave" class="btn btn-outline-primary" onclick="saveChanges()" disabled>
+                                                                                                Сохранить изменения
+                                                                                            </button>
+                                                                                        </div>
+                                                                                    </div>
+
+                                                                                </div> }
+                                                                            else
+                                                                            {
+                                                                <h2>Не удалось отбразить список</h2>}

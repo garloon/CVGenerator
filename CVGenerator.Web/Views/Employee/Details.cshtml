@@ -1,0 +1,333 @@
+﻿@model EmployeeDetailsModel
+
+@{ Layout = "_Layout"; }
+
+<link rel="stylesheet" href="~/css/Views/HardSkillsTree.css" />
+
+@section Scripts {
+    <script>
+        const employeeId = @Model.EmployeeId;
+    </script>
+
+    <script src="~/js/Views/EmployeeAbility/AddEmployeeAbility.js"></script>
+    <script src="~/js/Views/EmployeeEducation/AddEmployeeEducation.js"></script>
+    <script src="~/js/Views/EmployeeCertificate/AddEmployeeCertificate.js"></script>
+    <script src="~/js/Views/EmployeeLanguage/AddEmployeeLanguage.js"></script>
+    <script src="~/js/Views/EmployeeProject/AddEmployeeProject.js"></script>
+    <script src="~/js/Views/Employee/Details.js"></script>
+    <script src="~/js/Views/HardSkillsTree.js"></script>
+}
+
+<script>
+    employeeProjectsUrl = '@($"/EmployeeProject/{Model.EmployeeId}")';
+    employeeLanguagesUrl = '@($"/EmployeeLanguage/{Model.EmployeeId}")';
+    employeeAbilitiesUrl = '@($"/EmployeeAbility/{Model.EmployeeId}")';
+    employeeEducationUrl = '@($"/EmployeeEducation/{Model.EmployeeId}")';
+    employeeHardSkillsUrl = '@($"/EmployeeHardSkill/{Model.EmployeeId}")';
+    employeeCertificatesUrl = '@($"/EmployeeCertificate/{Model.EmployeeId}")';
+</script>
+
+<div class="d-flex justify-content-center">
+    <div class="card col-12">
+        <div class="card-body">
+            <div class="container">
+                <div class="row pb-4">
+                    <h2>@Model.Name</h2>
+                </div>
+
+                <div class="row">
+                    <div class="col-8">
+                        <h6 style="display: inline">Направление: </h6>@string.Join(", ", Model.Departments.Select(dep => dep.Name).ToList())<br /><br />
+                        <h6 style="display: inline">Email: </h6>@Model.Email<br />
+                    </div>
+                    <div class="col-4 align-middle">
+                        <form method="post" action="/Cv/GenerateCvFromEmployeeProfile">
+                            <input type="hidden" name="employeeId" value="@Model.EmployeeId">
+                            <button type="submit" style="width: 100%" name="submit_param" value="submit_model" class="btn btn-outline-secondary">Генерировать CV</button><br /><br />
+                        </form>
+                    </div>
+                </div>
+                <div class="row">
+                    <h3>Данные пользователя</h3><br />
+                </div>
+
+                <!---->
+
+                <div class="row">
+                    <h6><i>Иностранные языки:</i></h6>
+                </div>
+                <div class="row pb-4">
+                    <div class="col-12">
+                        <div id="employeeLanguagesSpinner" style="text-align:left">
+                            <div class="spinner-grow spinner-grow-sm" role="status"></div>
+                            <div class="spinner-grow spinner-grow-sm" role="status"><span class="sr-only">Loading...</span></div>
+                            <div class="spinner-grow spinner-grow-sm" role="status"></div>
+                            <br />
+                        </div>
+                        <div id="employeeLanguages"></div>
+                    </div>
+                    <div class="col-4 align-middle">
+                        <a type="button" class="btn btn-outline-secondary" href="" data-ajax="true" data-ajax-url="@($"/EmployeeLanguage/{Model.EmployeeId}/AddEmployeeLanguage")"
+                           data-ajax-update="#addLanguageContainer" data-ajax-loading="#addLanguageSpinner" data-toggle="modal" data-target="#addLanguageModal" data-ajax-complete="$('#addLanguageContainer').show()">
+                            Добавить
+                        </a>
+                    </div>
+                </div>
+
+                <div class="modal fade" id="addLanguageModal" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h6>Иностранный язык:</h6>
+                                <span id="addLanguageMessage" style="display:none"></span>
+                            </div>
+                            <div class="modal-body">
+                                <div id="addLanguageSpinner" style="display:none; text-align:center">
+                                    <div class="spinner-grow spinner-grow-sm" role="status"></div>
+                                    <div class="spinner-grow spinner-grow-sm" role="status"><span class="sr-only">Loading...</span></div>
+                                    <div class="spinner-grow spinner-grow-sm" role="status"></div>
+                                </div>
+                                <div id="addLanguageContainer" style="display:none"></div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="$('#addLanguageMessage').hide();$('#addLanguageContainer').hide(400)">Закрыть</button>
+                                <button type="button" class="btn btn-primary" onclick="saveLanguageForm()">Сохранить</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!---->
+
+                <div class="row">
+                    <h6><i>Образование:</i></h6>
+                </div>
+                <div class="row pb-4">
+                    <div class="col-12">
+                        <div id="employeeEducationsSpinner" style="text-align:left">
+                            <div class="spinner-grow spinner-grow-sm" role="status"></div>
+                            <div class="spinner-grow spinner-grow-sm" role="status"><span class="sr-only">Loading...</span></div>
+                            <div class="spinner-grow spinner-grow-sm" role="status"></div>
+                            <br />
+                        </div>
+                        <div id="employeeEducations"></div>
+                    </div>
+                    <div class="col-4 align-middle">
+                        <a type="button" class="btn btn-outline-secondary" href="" data-ajax="true" data-ajax-url="@($"/EmployeeEducation/{Model.EmployeeId}/AddEmployeeEducation")" data-ajax-update="#addEducationContainer"
+                           data-ajax-loading="#addEducationSpinner" data-ajax-complete="$('#addEducationContainer').show()" data-toggle="modal" data-target="#addEducationModal">
+                            Добавить
+                        </a>
+                    </div>
+                </div>
+
+                <div class="modal fade" id="addEducationModal" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h6>Образование:</h6>
+                                <span id="addEducationMessage" style="display:none"></span>
+                            </div>
+                            <div class="modal-body">
+                                <div id="addEducationSpinner" style="display:none; text-align:center">
+                                    <div class="spinner-grow spinner-grow-sm" role="status"></div>
+                                    <div class="spinner-grow spinner-grow-sm" role="status"><span class="sr-only">Loading...</span></div>
+                                    <div class="spinner-grow spinner-grow-sm" role="status"></div>
+                                </div>
+                                <div id="addEducationContainer" style="display:none"></div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="$('#addEducationMessage').hide();$('#addEducationContainer').hide(400)">Закрыть</button>
+                                <button type="button" class="btn btn-primary" onclick="saveEducationForm()">Сохранить</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!---->
+
+                <div class="row">
+                    <h6><i>Сертификаты:</i></h6>
+                </div>
+                <div class="row pb-4">
+                    <div class="col-12">
+                        <div id="employeeCertificatesSpinner" style="text-align:left">
+                            <div class="spinner-grow spinner-grow-sm" role="status"></div>
+                            <div class="spinner-grow spinner-grow-sm" role="status"><span class="sr-only">Loading...</span></div>
+                            <div class="spinner-grow spinner-grow-sm" role="status"></div>
+                            <br />
+                        </div>
+                        <div id="employeeCertificates"></div>
+                    </div>
+                    <div class="col-4 align-middle">
+                        <a type="button" class="btn btn-outline-secondary" href="" data-ajax="true" data-ajax-url="@($"/EmployeeCertificate/{Model.EmployeeId}/AddEmployeeCertificate")" data-ajax-update="#addCertificateContainer"
+                           data-ajax-loading="#addCertificateSpinner" data-ajax-complete="$('#addCertificateContainer').show()" data-toggle="modal" data-target="#addCertificateModal">
+                            Добавить
+                        </a>
+                    </div>
+                </div>
+
+                <div class="modal fade" id="addCertificateModal" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h6>Сертификат:</h6>
+                                <span id="addAbilityMessage" style="display:none"></span>
+                            </div>
+                            <div class="modal-body">
+                                <div id="addCertificateSpinner" style="display:none; text-align:center">
+                                    <div class="spinner-grow spinner-grow-sm" role="status"></div>
+                                    <div class="spinner-grow spinner-grow-sm" role="status"><span class="sr-only">Loading...</span></div>
+                                    <div class="spinner-grow spinner-grow-sm" role="status"></div>
+                                </div>
+                                <div id="addCertificateContainer" style="display:none"></div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="$('#addCertificateMessage').hide();$('#addCertificateContainer').hide(400)">Закрыть</button>
+                                <button type="button" class="btn btn-primary" onclick="saveCertificateForm()">Сохранить</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!---->
+
+                <div class="row">
+                    <h6><i>Профессиональные навыки и умения:</i></h6>
+                </div>
+                <div class="row pb-4">
+                    <div class="col-12">
+                        <div id="employeeAbilitiesSpinner" style="text-align:left">
+                            <div class="spinner-grow spinner-grow-sm" role="status"></div>
+                            <div class="spinner-grow spinner-grow-sm" role="status"><span class="sr-only">Loading...</span></div>
+                            <div class="spinner-grow spinner-grow-sm" role="status"></div>
+                            <br />
+                        </div>
+                        <div id="employeeAbilities"></div>
+                    </div>
+                    <div class="col-4 align-middle">
+                        <a type="button" class="btn btn-outline-secondary" href="" data-ajax="true" data-ajax-url="@($"/EmployeeAbility/{Model.EmployeeId}/AddEmployeeAbility")" data-ajax-update="#addAbilityContainer"
+                           data-ajax-loading="#addAbilitySpinner" data-ajax-complete="$('#addAbilityContainer').show()" data-toggle="modal" data-target="#addAbilityModal">
+                            Добавить
+                        </a>
+                    </div>
+                </div>
+
+                <div class="modal fade" id="addAbilityModal" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h6>Профессиональный навык:</h6>
+                                <span id="addAbilityMessage" style="display:none"></span>
+                            </div>
+                            <div class="modal-body">
+                                <div id="addAbilitySpinner" style="display:none; text-align:center">
+                                    <div class="spinner-grow spinner-grow-sm" role="status"></div>
+                                    <div class="spinner-grow spinner-grow-sm" role="status"><span class="sr-only">Loading...</span></div>
+                                    <div class="spinner-grow spinner-grow-sm" role="status"></div>
+                                </div>
+                                <div id="addAbilityContainer" style="display:none"></div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="$('#addAbilityMessage').hide();$('#addAbilityContainer').hide(400)">Закрыть</button>
+                                <button type="button" class="btn btn-primary" onclick="saveAbilityForm()">Сохранить</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!---->
+
+                <div class="row">
+                    <h6><i>Навыки:</i></h6>
+                </div>
+                <div class="row pb-4">
+                    <div class="col-12">
+                        <div id="employeeHardSkillsSpinner" style="text-align:left">
+                            <div class="spinner-grow spinner-grow-sm" role="status"></div>
+                            <div class="spinner-grow spinner-grow-sm" role="status"><span class="sr-only">Loading...</span></div>
+                            <div class="spinner-grow spinner-grow-sm" role="status"></div>
+                            <br />
+                        </div>
+                        <div id="employeeHardSkills"></div>
+                    </div>
+
+                    <div class="col-4 align-middle">
+                        <a id="openAddHardSkillButton" href="" type="button" class="btn btn-outline-secondary" data-toggle="modal" data-target="#AddHardSkillModal">
+                            Добавить
+                        </a>
+                    </div>
+                </div>
+
+                @* Модальное окно добавления навыков *@
+                <div class="modal fade" id="AddHardSkillModal" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="AddHardSkillModalLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-xl">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="staticBackdropLabel">Добавить навыки</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="container">
+                                    <div class="row"><label for="searchHardSkillInput">Поиск:</label></div>
+                                    <div class="row mb-3">
+                                        <input id="searchHardSkillInput" class="w-100" type="text" name="searchHardSkillInput" placeholder="Найти навык" />
+                                    </div>
+                                    <div class="tree-container"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!---->
+
+                <div class="row">
+                    <h6><i>Проекты:</i></h6>
+                </div>
+                <div class="row pb-4">
+                    <div class="col-12">
+                        <div id="employeeProjectsSpinner" style="text-align:left">
+                            <div class="spinner-grow spinner-grow-sm" role="status"></div>
+                            <div class="spinner-grow spinner-grow-sm" role="status"><span class="sr-only">Loading...</span></div>
+                            <div class="spinner-grow spinner-grow-sm" role="status"></div>
+                            <br />
+                        </div>
+                        <div id="employeeProjects"></div>
+                    </div>
+                    <div class="col-4 align-middle">
+                        <br>
+                        <a type="button" class="btn btn-outline-secondary" href="" data-ajax="true" data-ajax-url="@($"/EmployeeProject/{Model.EmployeeId}/AddEmployeeProject")" data-ajax-update="#addProjectContainer"
+                           data-ajax-loading="#addProjectSpinner" data-ajax-complete="$('#addProjectContainer').show()" data-toggle="modal" data-target="#addProjectModal">
+                            Добавить
+                        </a>
+                    </div>
+                </div>
+
+                <div class="modal fade" id="addProjectModal" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h6>Проекты:</h6>
+                                <span id="addProjectMessage" style="display:none"></span>
+                            </div>
+                            <div class="modal-body">
+                                <div id="addProjectSpinner" style="display:none; text-align:center">
+                                    <div class="spinner-grow spinner-grow-sm" role="status"></div>
+                                    <div class="spinner-grow spinner-grow-sm" role="status"><span class="sr-only">Loading...</span></div>
+                                    <div class="spinner-grow spinner-grow-sm" role="status"></div>
+                                </div>
+                                <div id="addProjectContainer" style="display:none"></div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="$('#addProjectMessage').hide();$('#addProjectContainer').hide(400)">Закрыть</button>
+                                <button type="button" class="btn btn-primary" onclick="saveProjectForm()">Сохранить</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

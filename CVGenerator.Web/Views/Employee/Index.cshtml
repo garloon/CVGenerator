@@ -1,0 +1,155 @@
+﻿@model IEnumerable<EmployeeSearchingModel>
+
+@{ Layout = "_Layout";
+
+    // Заголовок таблицы
+    string tableTitle = string.Empty;
+
+    if (ViewData.ContainsKey("TableTitle"))
+    {
+        tableTitle = ViewData["TableTitle"] as string ?? string.Empty;
+    }
+
+    // Название контроллера, предназначенного для обработки объектов
+    string controllerName = string.Empty;
+
+    if (ViewData.ContainsKey("ControllerName"))
+    {
+        controllerName = ViewData["ControllerName"] as string ?? string.Empty;
+    }
+
+    if (!string.IsNullOrEmpty(controllerName) && controllerName.IndexOf("/") != 0)
+    {
+        controllerName = "/" + controllerName;
+    }
+
+    // Строка содержащая Url списка (адрес контроллера и параметры фильтрации)
+    string listObjUrl = controllerName + "?";
+
+    if (ViewData.ContainsKey("QueryFilterString"))
+    {
+        string filterString = ViewData["QueryFilterString"] as string;
+        listObjUrl += !string.IsNullOrEmpty(filterString) ? filterString + "&" : string.Empty;
+    }
+
+    // Объект с параметрами фильтрации
+    EmployeeQueryFilter queryFilter = null;
+    if (ViewData.ContainsKey("QueryFilter"))
+    {
+        queryFilter = ViewData["QueryFilter"] as EmployeeQueryFilter;
+    }
+
+    // Количество ссылок на страницы
+    const int pageLinkCount = 4;
+
+    // Общее количество стрниц
+    int PageCount;
+    int.TryParse(ViewData["PageCount"]?.ToString() ?? "-1", out PageCount);
+
+    // Номер текущей стриницы
+    int PageNum;
+    int.TryParse(ViewData["PageNum"]?.ToString() ?? "-1", out PageNum);
+
+    ViewData["Title"] = tableTitle; }
+
+<script src="~/js/QueryFilter.js"></script>
+<script src="~/js/Views/Employee/Index.js"></script>
+
+<script>
+    controllerUrl = '@controllerName';
+    filter.name = '@(new Microsoft.AspNetCore.Html.HtmlString(queryFilter?.Name ?? string.Empty))';
+    filter.department = '@(new Microsoft.AspNetCore.Html.HtmlString(queryFilter?.Department ?? string.Empty))';
+    filter.isShowDismissed = false;
+
+    if ('@ViewBag?.IsShowDismissed' == 'True') {
+        filter.isShowDismissed = true;
+    }
+</script>
+
+<div id="content">
+    <table class="table">
+        <thead>
+            <tr>
+                <th><label>ФИО</label></th>
+                <th><label>Логин</label></th>
+                <th><label>Email</label></th>
+
+                @if (ViewBag?.IsShowDismissed)
+                {
+                    <th><label>Дата увольнения</label></th>
+                }
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model != null)
+            {
+@foreach (var employee in Model)
+{
+<tr>
+    <td>
+        <label>@employee.FirstLastMiddleName</label>
+    </td>
+    <td>
+        <label>@employee.Login</label>
+    </td>
+    <td>
+        <label>@employee.Email</label>
+    </td>
+
+    @if (ViewBag?.IsShowDismissed)
+    {
+<td>
+    <label>@employee.Deleted</label>
+</td>
+}
+    <td>
+        <a href="@($"/Employee/{employee.Id}/Details")">Профиль</a>
+    </td>
+</tr>
+}}
+        </tbody>
+    </table>
+
+    <div class="row">
+        <div id="paginator" class="col-6">
+
+            @if (PageCount > 0)
+            {
+<ul class="pagination">
+    @if (PageNum > 1)
+    {
+<li class="page-item">
+    <a class="page-link" href="@($"{listObjUrl}page={PageNum - 1}")">
+        Previous
+    </a>
+</li>
+ }
+else
+{
+<li class="page-item disabled"><a class="page-link" href="#">Предыдущая</a></li>
+}
+
+    @for (int num = Math.Max(PageNum - pageLinkCount / 2, 1); num <= Math.Min(PageNum + pageLinkCount, PageCount); num++)
+    {
+        if (num != PageNum)
+        {
+<li class="page-item"><a class="page-link" href="@($"{listObjUrl}page={num}")">@num</a></li>
+ }
+else
+{
+<li class="page-item active disabled"><a class="page-link" href="#">@(PageNum)</a></li>
+}
+}
+
+    @if (PageNum < PageCount)
+    {
+<li class="page-item"><a class="page-link" href="@($"{listObjUrl}page={PageNum + 1}")">Следующая</a></li>
+ }
+else
+{
+<li class="page-item disabled"><a class="page-link" href="#">Следующая</a></li>
+}
+</ul>       }
+        </div>
+    </div>
+</div>
